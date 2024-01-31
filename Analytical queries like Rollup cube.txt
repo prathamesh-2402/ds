@@ -1,0 +1,68 @@
+Implementation of Analytical queries like Roll_UP, CUBE, First,
+Last, Rank AND Dense Rank.
+------------------------------
+CREATE TABLE emp (
+empno NUMBER(4) CONSTRAINT pk_emp PRIMARY KEY,
+ename VARCHAR2(10),
+job VARCHAR2(9),
+mgr NUMBER(4),
+hiredate DATE,
+sal NUMBER(7,2),
+comm NUMBER(7,2),
+deptno NUMBER(2)
+); 
+-----------------------------
+SELECT empno,
+deptno,
+sal,
+RANK() OVER (PARTITION BY deptno ORDER BY sal) AS
+myrank
+FROM emp; 
+------------------------------
+DENSE_RANK
+------------------------------
+SELECT empno,
+deptno,
+sal,
+DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal)
+AS myrank
+FROM emp; 
+------------------------------
+SELECT *
+FROM (SELECT empno,
+deptno,
+sal,
+DENSE_RANK() OVER (PARTITION BY deptno ORDER BY sal DESC)
+AS myrank
+FROM emp)
+WHERE myrank <= 2; 
+-----------------------------
+SELECT empno,
+deptno,
+sal,
+MIN(sal) KEEP (DENSE_RANK FIRST ORDER BY sal)
+OVER (PARTITION BY deptno) AS lowest,
+MIN(sal) KEEP (DENSE_RANK LAST ORDER BY sal)
+OVER (PARTITION BY deptno) AS highest
+FROM emp
+ORDER BY deptno, sal;
+----------------------------
+LEAD
+----------------------------
+SELECT empno,
+ename,
+job,
+sal,
+LEAD(sal, 1, 0) OVER (ORDER BY sal) AS sal_next,
+LEAD(sal, 1, 0) OVER (ORDER BY sal) - sal AS sal_diff
+FROM emp; 
+----------------------------
+SELECT deptno,
+empno,
+ename,
+job,
+sal,
+LEAD(sal, 1, 0) OVER (PARTITION BY deptno ORDER BY sal)
+AS sal_next
+FROM emp; 
+----------------------------
